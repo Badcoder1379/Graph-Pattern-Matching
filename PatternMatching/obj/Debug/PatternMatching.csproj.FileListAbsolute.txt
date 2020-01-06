@@ -1,0 +1,12 @@
+P:\New folder\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe.config
+P:\New folder\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe
+P:\New folder\PatternMatching\PatternMatching\bin\Debug\PatternMatching.pdb
+P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
+P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.exe
+P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.pdb
+P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
+P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.exe
+P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.pdb
+P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe.config
+P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe
+P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.pdb
