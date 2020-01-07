@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace PatternMatching
 {
-    class TestMaker
+    class GraphMaker
     {
-        public void Main()
+        public static void Create(int nodeCount, int edgeCount ,string address)
         {
-            int nodeCount = 3;
-            int edgeCount = 2;
             try
             {
                 HashSet<Guid> allIDs = new HashSet<Guid>();
-                StreamWriter sw = new StreamWriter("../src/nodes.txt");
+                StreamWriter sw = new StreamWriter(address + "nodes.txt");
                 sw.WriteLine(nodeCount);
                 var rnd = new Random();
                 for (int i = 0; i < nodeCount; i++)
@@ -30,7 +28,7 @@ namespace PatternMatching
                 sw.Close();
 
 
-                sw = new StreamWriter("../src/edges.txt");
+                sw = new StreamWriter(address + "edges.txt");
                 sw.WriteLine(edgeCount);
                 for (int i = 0; i < edgeCount; i++)
                 {

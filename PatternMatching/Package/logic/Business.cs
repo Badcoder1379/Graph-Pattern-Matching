@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class Main
+    class Business
     {
         public Pattern Pattern;
         public Expander expander;
         public Stack<StackPack> StackPack = new Stack<StackPack>();
         private StackPack lastPack;
         private StackPack newPack;
-        public readonly int PageMax = 50;
-        private List<FixedPattern> result = new List<FixedPattern>();
+        public static readonly int PageMax = 7;
+        public List<FixedPattern> Results = new List<FixedPattern>();
         private StackState state = StackState.Removing;
 
-        public Main(Pattern pattern, Expander expander)
+        public Business(Pattern pattern, Expander expander)
         {
             this.expander = expander;
             this.Pattern = pattern;
@@ -26,43 +26,64 @@ namespace PatternMatching.Package.logic
 
         public void Run()
         {
-
+            doFirstExpand();
+            state = StackState.Adding;
+            while (StackPack.Count > 0)
+            {
+                nextExpand();
+            }
         }
 
         private void nextExpand()
         {
+
             var last = StackPack.Peek();
-            while (last.Page == last.PageCount)
+            if (last.IsFinished(Pattern))
             {
-                last = StackPack.Pop();
+                Results = Results.Union(last.FixedPatterns).ToList();
+                StackPack.Pop();
                 state = StackState.Removing;
+                return;
+            }
+            if (last.FixedPatterns.Count == 0)
+            {
+                StackPack.Pop();
+                state = StackState.Removing;
+                return;
             }
             if (state == StackState.Removing)
             {
                 //changing
-                var element = last.LastElementExpanded;
-                createNewPack(element, last.Page + 1, last.PageCount);
-                var expandedElements = expandLastElementOfNewPack(newPack.Page + 1);
-                newPack.SetsMap[element.ID] = expandedElements;
-                newPack.expandType = last.expandType;
-                newPack.UpdateFixedPatterns(element, Pattern);
-                newPack.UpdateSetsFromFixedPatterns();
-                state = StackState.Adding;
-                addNewPackToStack();
+                if(last.Page < last.PageCount)
+                {
+                    var element = last.LastElementExpanded;
+                    createNewPack(element, last.Page + 1, last.PageCount);
+                    var expandedElements = expandLastElementOfNewPack(newPack.Page + 1);
+                    newPack.SetsMap[element.ID] = expandedElements;
+                    newPack.expandType = last.expandType;
+                    newPack.UpdateFixedPatterns(element, Pattern);
+                    newPack.UpdateSetsFromFixedPatterns();
+                    state = StackState.Adding;
+                    addNewPackToStack();
+                    return;
+                }
+                StackPack.Pop();
+                state = StackState.Removing;
+                return;
             }
             else
             {
                 // check for finish
                 if (last.IsFinished(Pattern))
                 {
-                    result = result.Union(last.FixedPatterns).ToList();
+                    Results = Results.Union(last.FixedPatterns).ToList();
                     StackPack.Pop();
                     state = StackState.Removing;
                     addNewPackToStack();
                     return;
                 }
                 // combinning next page to last page
-                if (last.SetsMap[last.LastElementExpanded.ID].Count < PageMax / 2)
+                if (last.SetsMap[last.LastElementExpanded.ID].Count < PageMax / 2 && last.Page < last.PageCount)
                 {
                     var element = last.LastElementExpanded;
                     createNewPack(element, last.Page + 1, last.PageCount);
@@ -96,6 +117,7 @@ namespace PatternMatching.Package.logic
                     }
                 }
                 expandNewElement();
+                addNewPackToStack();
                 state = StackState.Adding;
             }
 
@@ -106,7 +128,7 @@ namespace PatternMatching.Package.logic
             var minPair = findNextOptimomStage();
             var element = minPair.Key;
             var count = minPair.Value;
-            createNewPack(element, 1, count / PageMax);
+            createNewPack(element, 1, count);
             var expandedElements = expandLastElementOfNewPack(newPack.Page);
             newPack.SetsMap[element.ID] = expandedElements;
             if (element is Node)
@@ -156,12 +178,13 @@ namespace PatternMatching.Package.logic
             return dict.OrderByDescending(x => x.Value).First();
         }
 
-        private void createNewPack(Element element, int page, int pageCount)
+        private void createNewPack(Element element, int page, int elementCount)
         {
-            if (PageMax == -1)
+            if (elementCount == -1)
             {
-                pageCount = countElement(element);
+                elementCount = countElement(element);
             }
+            var pageCount = (elementCount - 1) / PageMax + 1;
             newPack = new StackPack();
             newPack.LastElementExpanded = element;
             newPack.FixedElements = new List<Guid>(lastPack.FixedElements);
@@ -191,6 +214,61 @@ namespace PatternMatching.Package.logic
         {
             StackPack.Push(newPack);
             lastPack = newPack;
+        }
+
+
+
+        private void doFirstExpand()
+        {
+            var links = Pattern.Links;
+            var nodes = Pattern.Nodes;
+            var dict = new Dictionary<Element, int>();
+            foreach (var link in links)
+            {
+                dict[link] = expander.CountLink(link, null, null);
+            }
+            foreach (var node in nodes)
+            {
+                dict[node] = expander.CountNode(node, null);
+            }
+            var minElement = dict.OrderByDescending(x => x.Value).First().Key;
+            var count = dict[minElement];
+
+            newPack = new StackPack();
+            newPack.LastElementExpanded = minElement;
+            newPack.FixedElements = new List<Guid>();
+            newPack.FixedElements.Add(minElement.ID);
+            newPack.SetsMap = new Dictionary<Guid, List<Element>>();
+            newPack.FixedPatterns = new List<FixedPattern>();
+            newPack.Page = 1;
+            newPack.PageCount = (count - 1) / PageMax + 1;
+
+
+            var expandedElements = expandLastElementOfNewPack(newPack.Page);
+            newPack.SetsMap[minElement.ID] = expandedElements;
+            if (minElement is Node)
+            {
+                newPack.expandType = ExpandType.newNode;
+            }
+            else
+            {
+                newPack.expandType = ExpandType.newLink;
+            }
+            foreach (var element in newPack.SetsMap[minElement.ID])
+            {
+                var fixedPattern = new FixedPattern();
+                fixedPattern.fixedElementsMap[minElement.ID] = element;
+                newPack.FixedPatterns.Add(fixedPattern);
+            }
+            addNewPackToStack();
+        }
+
+        public void PrintResults()
+        {
+            foreach (var result in Results)
+            {
+                result.Print();
+            }
         }
     }
 }

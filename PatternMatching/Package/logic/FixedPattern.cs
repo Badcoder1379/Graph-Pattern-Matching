@@ -11,11 +11,11 @@ namespace PatternMatching.Package.logic
     {
 
         public bool finished = false;
-        public Dictionary<Guid, Element> fixedNodsMap = new Dictionary<Guid, Element>();
+        public Dictionary<Guid, Element> fixedElementsMap = new Dictionary<Guid, Element>();
 
-        public FixedPattern(Dictionary<Guid, Element> fixedNodsMap)
+        public FixedPattern(Dictionary<Guid, Element> fixedElementsMap)
         {
-            this.fixedNodsMap = fixedNodsMap;
+            this.fixedElementsMap = fixedElementsMap;
         }
 
         public FixedPattern()
@@ -27,16 +27,16 @@ namespace PatternMatching.Package.logic
             var valids = new List<Element>();
             foreach(Link condidate in condidates)
             {
-                if (fixedNodsMap.Keys.Contains(patternLink.Source))
+                if (fixedElementsMap.Keys.Contains(patternLink.Source))
                 {
-                    if(fixedNodsMap[patternLink.Source].ID != condidate.Source)
+                    if(fixedElementsMap[patternLink.Source].ID != condidate.Source)
                     {
                         continue;
                     }
                 }
-                if (fixedNodsMap.Keys.Contains(patternLink.Target))
+                if (fixedElementsMap.Keys.Contains(patternLink.Target))
                 {
-                    if (fixedNodsMap[patternLink.Target].ID != condidate.Target)
+                    if (fixedElementsMap[patternLink.Target].ID != condidate.Target)
                     {
                         continue;
                     }
@@ -46,14 +46,14 @@ namespace PatternMatching.Package.logic
             var results = new List<FixedPattern>();
             foreach(var valid in valids)
             {
-                var result = new FixedPattern(new Dictionary<Guid, Element>(fixedNodsMap));
-                result.fixedNodsMap[patternLink.ID] = valid;
+                var result = new FixedPattern(new Dictionary<Guid, Element>(fixedElementsMap));
+                result.fixedElementsMap[patternLink.ID] = valid;
                 results.Add(new FixedPattern());
             }
             return results;
         }
 
-        internal FixedPattern MergeNewNodes(Node newExpandedNode, Dictionary<Guid, Element> condidates, Pattern pattern)
+        internal FixedPattern MergeNewNodes(Node newExpandedNode,List<Element> condidates, Pattern pattern)
         {
             Guid validId;
             try
@@ -64,8 +64,17 @@ namespace PatternMatching.Package.logic
             {
                 return null;
             }
-            var result = new FixedPattern(fixedNodsMap);
-            result.fixedNodsMap[validId] = newExpandedNode;
+            var result = new FixedPattern(fixedElementsMap);
+            var validNodes = condidates.Where(node => node.ID.Equals(validId)).ToList();
+            if(validNodes.Count == 0)
+            {
+                return null;
+            }
+            if(validNodes.Count > 1)
+            {
+                throw new Exception("two node hava same guid !!!");
+            }
+            result.fixedElementsMap[newExpandedNode.ID] = validNodes.First();
             return result;
         }
 
@@ -73,14 +82,12 @@ namespace PatternMatching.Package.logic
         {
             HashSet<Guid> validIds = new HashSet<Guid>();
             validIds.UnionWith(pattern.Links.Where(x =>
-                        x.Source == node.ID &&
-                        fixedNodsMap.ContainsKey(x.Target) &&
-                        fixedNodsMap.ContainsKey(x.ID)).Select(x => x.Source));
+                        fixedElementsMap.ContainsKey(x.ID) &&
+                        x.Source == node.ID).Select(link => ((Link)fixedElementsMap[link.ID]).Source));
             validIds.UnionWith(pattern.Links.Where(x =>
-                        x.Target == node.ID &&
-                        fixedNodsMap.ContainsKey(x.Source) &&
-                        fixedNodsMap.ContainsKey(x.ID)).Select(x => x.Target));
-            if(validIds.Count == 0)
+                        fixedElementsMap.ContainsKey(x.ID) &&
+                        x.Target == node.ID).Select(link => ((Link)fixedElementsMap[link.ID]).Target));
+            if (validIds.Count == 0)
             {
                 throw new Exception("not valid ID");
             }
@@ -89,6 +96,15 @@ namespace PatternMatching.Package.logic
                 throw new Exception("no any valid ID");
             }
             return validIds.First();
+        }
+
+        public void Print()
+        {
+            Console.WriteLine("pattern matched :");
+            foreach(var element in fixedElementsMap)
+            {
+                Console.WriteLine(element.Key.ToString() + "  :  " + element.Value.ID.ToString() + "   as a " + element.Value.Label + " element.");
+            }
         }
     }
 

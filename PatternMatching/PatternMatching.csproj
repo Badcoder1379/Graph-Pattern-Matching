@@ -47,22 +47,27 @@
     <Compile Include="Package\logic\Expander.cs" />
     <Compile Include="Package\logic\FixedPattern.cs" />
     <Compile Include="Package\logic\Importer.cs" />
-    <Compile Include="Package\logic\Main.cs" />
+    <Compile Include="Package\logic\Business.cs" />
     <Compile Include="Package\logic\SourceManagement.cs" />
     <Compile Include="Package\model\Element.cs" />
     <Compile Include="Package\model\ExpandType.cs" />
+    <Compile Include="Package\model\Graph.cs" />
     <Compile Include="Package\model\Link.cs" />
     <Compile Include="Package\model\Node.cs" />
     <Compile Include="Package\model\Pattern.cs" />
     <Compile Include="Package\model\Property.cs" />
     <Compile Include="Package\model\StackPack.cs" />
     <Compile Include="Package\model\StackState.cs" />
+    <Compile Include="PatternMaker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestMaker.cs" />
+    <Compile Include="GraphMaker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

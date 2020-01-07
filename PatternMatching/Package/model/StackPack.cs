@@ -27,6 +27,7 @@ namespace PatternMatching.Package.model
 
         public StackPack() { }
 
+
         /// <summary>
         /// when have updated your fixed patterns and some last fixed patterns are deleted, you cau use this to decress sets size and optimom them
         /// </summary>
@@ -34,7 +35,7 @@ namespace PatternMatching.Package.model
         {
             foreach (var elementId in FixedElements)
             {
-                SetsMap[elementId] = FixedPatterns.Select(x => x.fixedNodsMap[elementId]).ToList();
+                SetsMap[elementId] = FixedPatterns.Select(x => x.fixedElementsMap[elementId]).ToList();
             }
         }
 
@@ -49,15 +50,10 @@ namespace PatternMatching.Package.model
             var updatedList = new List<FixedPattern>();
             if (newExpandedElement is Node) //when our new expanded element is a node
             {
-                var dict = new Dictionary<Guid, Element>();
-                foreach(var condidate in condidates)
+                foreach (var fixedPattern in FixedPatterns)
                 {
-                    dict[condidate.ID] = condidate;
-                }
-                foreach(var fixedPattern in FixedPatterns)
-                {
-                    var newFixedPatterns = fixedPattern.MergeNewNodes((Node)newExpandedElement, dict, pattern);
-                    if(newFixedPatterns != null)
+                    var newFixedPatterns = fixedPattern.MergeNewNodes((Node)newExpandedElement, condidates, pattern);
+                    if (newFixedPatterns != null)
                     {
                         updatedList.Add(newFixedPatterns);
                     }
@@ -77,13 +73,17 @@ namespace PatternMatching.Package.model
 
         public List<Guid> GetPossibleIds(Guid id)
         {
-            return SetsMap[id].Select(x => x.ID).ToList();
+            if (SetsMap.ContainsKey(id))
+            {
+                return SetsMap[id].Select(x => x.ID).ToList();
+            }
+            return null;
         }
 
 
         public bool IsFinished(Pattern pattern)
         {
-            if(FixedElements.Count == pattern.Nodes.Count)
+            if (SetsMap.Keys.Count == pattern.AllElements.Count)
             {
                 return true;
             }

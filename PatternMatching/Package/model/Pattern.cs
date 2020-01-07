@@ -12,7 +12,10 @@ namespace PatternMatching.Package.model
         public List<Node> Nodes;
         public List<Link> Links;
         public List<Element> AllElements;
-        
+
+        public Pattern(Graph graph)
+            : this(graph.Nodes, graph.Links) { }
+            
 
         public Pattern(List<Node> nodes, List<Link> links)
         {
@@ -49,11 +52,11 @@ namespace PatternMatching.Package.model
             List<Guid> resultList = new List<Guid>();
             foreach (Link link in Links)
             {
-                if (fixedElements.Contains(link.Source) && !fixedElements.Contains(link.Target))
+                if (fixedElements.Contains(link.ID) && !fixedElements.Contains(link.Target))
                 {
                     resultList.Add(link.Target);
                 }
-                if (fixedElements.Contains(link.Target) && !fixedElements.Contains(link.Source))
+                if (fixedElements.Contains(link.ID) && !fixedElements.Contains(link.Source))
                 {
                     resultList.Add(link.Source);
                 }
