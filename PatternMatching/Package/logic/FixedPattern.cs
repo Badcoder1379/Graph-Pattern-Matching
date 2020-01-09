@@ -22,33 +22,22 @@ namespace PatternMatching.Package.logic
         {
         }
 
-        public List<FixedPattern> MergeNewLinks(Link patternLink, List<Element> condidates, Pattern pattern)
+        public List<FixedPattern> MergeNewLinks(Link link, List<Element> ExpandedLinks, Pattern pattern)
         {
-            var valids = new List<Element>();
-            foreach(Link condidate in condidates)
-            {
-                if (fixedElementsMap.Keys.Contains(patternLink.Source))
-                {
-                    if(fixedElementsMap[patternLink.Source].ID != condidate.Source)
-                    {
-                        continue;
-                    }
-                }
-                if (fixedElementsMap.Keys.Contains(patternLink.Target))
-                {
-                    if (fixedElementsMap[patternLink.Target].ID != condidate.Target)
-                    {
-                        continue;
-                    }
-                }
-                valids.Add(condidate);
-            }
             var results = new List<FixedPattern>();
-            foreach(var valid in valids)
+            foreach(Link expandedLink in ExpandedLinks)
             {
-                var result = new FixedPattern(new Dictionary<Guid, Element>(fixedElementsMap));
-                result.fixedElementsMap[patternLink.ID] = valid;
-                results.Add(new FixedPattern());
+                if(fixedElementsMap.ContainsKey(link.Source) && fixedElementsMap[link.Source].ID != expandedLink.Source)
+                {
+                    continue;
+                }
+                if(fixedElementsMap.ContainsKey(link.Target) && fixedElementsMap[link.Target].ID != expandedLink.Target)
+                {
+                    continue;
+                }
+                var newFixedPattern = new FixedPattern(new Dictionary<Guid, Element>(fixedElementsMap));
+                newFixedPattern.fixedElementsMap[link.ID] = expandedLink;
+                results.Add(newFixedPattern);
             }
             return results;
         }

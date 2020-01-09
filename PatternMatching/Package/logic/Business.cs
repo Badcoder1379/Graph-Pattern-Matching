@@ -14,7 +14,7 @@ namespace PatternMatching.Package.logic
         public Stack<StackPack> StackPack = new Stack<StackPack>();
         private StackPack lastPack;
         private StackPack newPack;
-        public static readonly int PageMax = 1;
+        public static readonly int PageMax = 1000;
         public List<FixedPattern> Results = new List<FixedPattern>();
         private StackState state = StackState.Removing;
 
@@ -26,7 +26,7 @@ namespace PatternMatching.Package.logic
 
         public void Run()
         {
-            doFirstExpand();
+           // ExpandFirstTimeAndFirstPack();
             Algorithm();
             /*
             state = StackState.Adding;
@@ -40,6 +40,7 @@ namespace PatternMatching.Package.logic
 
         private void Algorithm()
         {
+            ExpandElementOfMinCount();
             while (StackPack.Count > 0)
             {
                 while (true)
@@ -49,23 +50,26 @@ namespace PatternMatching.Package.logic
                         Results = Results.Union(lastPack.FixedPatterns).ToList();
                         break;
                     }
-                    if(lastPack.FixedPatterns.Count == 0)
+                    if (lastPack.FixedPatterns.Count == 0)
                     {
                         break;
                     }
-                    expandNewElement();
-                    addNewPackToStack();
-                    state = StackState.Adding;
+                    if(lastPack.SetsMap[lastPack.LastElementExpanded.ID].Count < PageMax / 2 && lastPack.Page < lastPack.PageCount)
+                    {
+                        CombineLastPackWithANewPack();
+                        continue;
+                    }
+                    AddingExpand();
                 }
                 while (true)
                 {
-                    if(lastPack.Page < lastPack.PageCount)
+                    if (lastPack.Page < lastPack.PageCount)
                     {
-                        changeLastPagebyNewPage();
+                        ChangeLastPagebyNextPage();
                         break;
                     }
-                    popLastPackFromStack();
-                    if(StackPack.Count == 0)
+                    PopLastPackFromStack();
+                    if (StackPack.Count == 0)
                     {
                         break;
                     }
@@ -73,7 +77,218 @@ namespace PatternMatching.Package.logic
             }
         }
 
-        private void NextExpand1()
+        private void AddingExpand()
+        {
+            var links = Pattern.GetAllNotConpeletedLinks(newPack.FixedElements);
+            if (links.Count > 0)
+            {
+                var link = links.First();
+                ExpandElement(link, -1);
+                return;
+            }
+
+            ExpandElementOfMinCount();
+        }
+
+
+
+        private void ExpandElementOfMinCount()
+        {
+            var minPair = FindOptimomAndMinimomStage();
+            var element = minPair.Key;
+            var count = minPair.Value;
+            if(count == 0)
+            {
+                newPack.FixedPatterns = new List<FixedPattern>();
+                return;
+            }
+            ExpandElement(element, count);
+        }
+
+        private void ExpandElement(Element element, int count)
+        {
+            var pageCount = (count - 1) / PageMax + 1;
+            CreateNewPack(element, 1, pageCount);
+            var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
+            newPack.SetsMap[element.ID] = expandedElements;
+            if (element is Node)
+            {
+                newPack.expandType = ExpandType.newNode;
+            }
+            else
+            {
+                newPack.expandType = ExpandType.newLink;
+            }
+            newPack.UpdateFixedPatterns(element, Pattern);
+            newPack.UpdateSetsFromFixedPatterns();
+            state = StackState.Adding;
+            AddNewPackToStack();
+        }
+
+        private List<Element> ExpandLastElementOfNewPack(int page)
+        {
+            var element = newPack.LastElementExpanded;
+            if (element is Node)
+            {
+                return expander.ExpandNode((Node)element, newPack.GetPossibleIds(element.ID), page).ToList();
+            }
+            else
+            {
+                var link = (Link)element;
+                return expander.ExpandLink(link,
+                    newPack.GetPossibleIds(link.Source),
+                    newPack.GetPossibleIds(link.Target),
+                    page);
+            }
+        }
+
+        private KeyValuePair<Element, int> FindOptimomAndMinimomStage()
+        {
+            var links = lastPack == null ? Pattern.Links : Pattern.GetAllAdjucentLinks(lastPack.FixedElements);
+            var nodes = lastPack == null ? Pattern.Nodes : Pattern.GetAllAdjucentNodes(lastPack.FixedElements);
+            var dict = new Dictionary<Element, int>();
+            foreach (var link in links)
+            {
+                var possibleSources = lastPack == null ? null : lastPack.GetPossibleIds(link.Source);
+                var possibleTargets = lastPack == null ? null : lastPack.GetPossibleIds(link.Target);
+                dict[link] = expander.CountLink(link,possibleSources, possibleTargets);
+            }
+            foreach (var node in nodes)
+            {
+                var possibleIds = (lastPack == null ? null : lastPack.GetPossibleIds(node.ID));
+                dict[node] = expander.CountNode(node, possibleIds);
+            }
+            return dict.OrderByDescending(x => x.Value).First();
+        }
+
+        private void CreateNewPack(Element element, int page, int pageCount)
+        {
+            newPack = new StackPack();
+            newPack.LastElementExpanded = element;
+            if (lastPack != null)
+            {
+                newPack.FixedElements = new List<Guid>(lastPack.FixedElements);
+                newPack.SetsMap = new Dictionary<Guid, List<Element>>(lastPack.SetsMap);
+                newPack.FixedPatterns = new List<FixedPattern>(lastPack.FixedPatterns);
+            }
+            else
+            {
+                newPack.FixedElements = new List<Guid>();
+                newPack.SetsMap = new Dictionary<Guid, List<Element>>();
+                newPack.FixedPatterns = new List<FixedPattern>();
+            }
+            newPack.FixedElements.Add(element.ID);
+            newPack.Page = page;
+            if (pageCount == -1)
+            {
+                var count = CountElement(element);
+                newPack.PageCount = (count - 1) / PageMax + 1;
+            }
+            else
+            {
+                newPack.PageCount = pageCount;
+            }
+            ;
+        }
+
+        private int CountElement(Element element)
+        {
+            if (element is Node)
+            {
+                return expander.CountNode((Node)element, newPack.GetPossibleIds(element.ID));
+            }
+            else
+            {
+                var link = (Link)element;
+                return expander.CountLink(link,
+                    newPack.GetPossibleIds(link.Source),
+                    newPack.GetPossibleIds(link.Target));
+            }
+        }
+
+        private void AddNewPackToStack()
+        {
+            StackPack.Push(newPack);
+            lastPack = newPack;
+            state = StackState.Adding;
+        }
+
+        private void PopLastPackFromStack()
+        {
+            StackPack.Pop();
+            if (StackPack.Count > 0)
+            {
+                lastPack = StackPack.Peek();
+            }
+            else
+            {
+                lastPack = null;
+            }
+            state = StackState.Removing;
+        }
+
+
+
+        private void ExpandFirstTimeAndFirstPack()
+        {
+            var minPair = FindOptimomAndMinimomStage();
+            var minElement = minPair.Key;
+            var count = minPair.Value;
+            ExpandElement(minElement, count);
+        }
+
+
+
+        private void CombineLastPackWithANewPack()
+        {
+            var element = lastPack.LastElementExpanded;
+            CreateNewPack(element, lastPack.Page + 1, lastPack.PageCount);
+            var expandedElements = ExpandLastElementOfNewPack(newPack.Page + 1);
+            newPack.SetsMap[element.ID] = expandedElements;
+            newPack.expandType = lastPack.expandType;
+            newPack.UpdateFixedPatterns(element, Pattern);
+            newPack.UpdateSetsFromFixedPatterns();
+            newPack.FixedPatterns = newPack.FixedPatterns.Union(lastPack.FixedPatterns).ToList();
+            newPack.SetsMap[element.ID] = newPack.SetsMap[element.ID].Union(lastPack.SetsMap[element.ID]).ToList();
+            PopLastPackFromStack();
+            AddNewPackToStack();
+            state = StackState.Adding;
+        }
+
+
+        private void ChangeLastPagebyNextPage()
+        {
+            var popedPack = StackPack.Peek();
+            PopLastPackFromStack();
+
+            var element = popedPack.LastElementExpanded;
+
+            CreateNewPack(element, popedPack.Page + 1, popedPack.PageCount);
+            var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
+            newPack.SetsMap[element.ID] = expandedElements;
+            newPack.expandType = popedPack.expandType;
+            newPack.UpdateFixedPatterns(element, Pattern);
+            newPack.UpdateSetsFromFixedPatterns();
+
+            AddNewPackToStack();
+            state = StackState.Adding;
+        }
+
+        public void PrintResults()
+        {
+            Console.WriteLine(Results.Count);
+            foreach (var result in Results)
+            {
+                result.Print();
+            }
+        }
+
+
+    }
+}
+
+/*
+   private void NextExpand1()
         {
             if (lastPack.IsFinished(Pattern))
             {
@@ -145,188 +360,4 @@ namespace PatternMatching.Package.logic
 
         }
 
-        private void expandNewElement()
-        {
-            var minPair = findNextOptimomStage();
-            var element = minPair.Key;
-            var count = minPair.Value;
-            expandNewElement(element, count);
-        }
-
-        private void expandNewElement(Element element, int count)
-        {
-            var pageCount = (count - 1) / PageMax + 1;
-            createNewPack(element, 1, pageCount);
-            var expandedElements = expandLastElementOfNewPack(newPack.Page);
-            newPack.SetsMap[element.ID] = expandedElements;
-            if (element is Node)
-            {
-                newPack.expandType = ExpandType.newNode;
-            }
-            else
-            {
-                newPack.expandType = ExpandType.newLink;
-            }
-            newPack.UpdateFixedPatterns(element, Pattern);
-            newPack.UpdateSetsFromFixedPatterns();
-        }
-
-        private List<Element> expandLastElementOfNewPack(int page)
-        {
-            var element = newPack.LastElementExpanded;
-            if (element is Node)
-            {
-                return expander.ExpandNode((Node)element, newPack.GetPossibleIds(element.ID), page).ToList();
-            }
-            else
-            {
-                var link = (Link)element;
-                return expander.ExpandLink(link,
-                    newPack.GetPossibleIds(link.Source),
-                    newPack.GetPossibleIds(link.Target),
-                    page);
-            }
-        }
-
-        private KeyValuePair<Element, int> findNextOptimomStage()
-        {
-            var links = lastPack == null ? Pattern.Links : Pattern.GetAllAdjucentLinks(lastPack.FixedElements);
-            var nodes = lastPack == null ? Pattern.Nodes : Pattern.GetAllAdjucentNodes(lastPack.FixedElements);
-            var dict = new Dictionary<Element, int>();
-            foreach (var link in links)
-            {
-                dict[link] = expander.CountLink(link,
-                    lastPack.GetPossibleIds(link.Source),
-                    lastPack.GetPossibleIds(link.Target));
-            }
-            foreach (var node in nodes)
-            {
-                var possibleIds = (lastPack == null ? null : lastPack.GetPossibleIds(node.ID));
-                dict[node] = expander.CountNode(node, possibleIds);
-            }
-            return dict.OrderByDescending(x => x.Value).First();
-        }
-
-        private void createNewPack(Element element, int page, int pageCount)
-        {
-            newPack = new StackPack();
-            newPack.LastElementExpanded = element;
-            if (lastPack != null)
-            {
-                newPack.FixedElements = new List<Guid>(lastPack.FixedElements);
-                newPack.SetsMap = new Dictionary<Guid, List<Element>>(lastPack.SetsMap);
-                newPack.FixedPatterns = new List<FixedPattern>(lastPack.FixedPatterns);
-            }
-            else
-            {
-                newPack.FixedElements = new List<Guid>();
-                newPack.SetsMap = new Dictionary<Guid, List<Element>>();
-                newPack.FixedPatterns = new List<FixedPattern>();
-            }
-            newPack.FixedElements.Add(element.ID);
-            newPack.Page = page;
-            if (pageCount == -1)
-            {
-                var count = countElement(element);
-                newPack.PageCount = (count - 1) / PageMax + 1;
-            }
-            else
-            {
-                newPack.PageCount = pageCount;
-            }
-            ;
-        }
-
-        private int countElement(Element element)
-        {
-            if (element is Node)
-            {
-                return expander.CountNode((Node)element, newPack.GetPossibleIds(element.ID));
-            }
-            else
-            {
-                var link = (Link)element;
-                return expander.CountLink(link,
-                    newPack.GetPossibleIds(link.Source),
-                    newPack.GetPossibleIds(link.Target));
-            }
-        }
-
-        private void addNewPackToStack()
-        {
-            StackPack.Push(newPack);
-            lastPack = newPack;
-            state = StackState.Adding;
-        }
-
-        private void popLastPackFromStack()
-        {
-            StackPack.Pop();
-            if (StackPack.Count > 0)
-            {
-                lastPack = StackPack.Peek();
-            }
-            else
-            {
-                lastPack = null;
-            }
-            state = StackState.Removing;
-        }
-
-
-
-        private void doFirstExpand()
-        {
-            var minPair = findNextOptimomStage();
-            var minElement = minPair.Key;
-            var count = minPair.Value;
-            expandNewElement(minElement, count);
-            addNewPackToStack();
-        }
-
-
-
-        private void combineLastPageAndNewPage()
-        {
-            var element = lastPack.LastElementExpanded;
-            createNewPack(element, lastPack.Page + 1, lastPack.PageCount);
-            var expandedElements = expandLastElementOfNewPack(newPack.Page + 1);
-            newPack.SetsMap[element.ID] = expandedElements;
-            newPack.expandType = lastPack.expandType;
-            newPack.UpdateFixedPatterns(element, Pattern);
-            newPack.UpdateSetsFromFixedPatterns();
-            newPack.FixedPatterns = newPack.FixedPatterns.Union(lastPack.FixedPatterns).ToList();
-            newPack.SetsMap[element.ID] = newPack.SetsMap[element.ID].Union(lastPack.SetsMap[element.ID]).ToList();
-        }
-
-
-        private void changeLastPagebyNewPage()
-        {
-            var popedPack = StackPack.Peek();
-            popLastPackFromStack();
-
-            var element = popedPack.LastElementExpanded;
-
-            createNewPack(element, popedPack.Page + 1, popedPack.PageCount);
-            var expandedElements = expandLastElementOfNewPack(newPack.Page);
-            newPack.SetsMap[element.ID] = expandedElements;
-            newPack.expandType = popedPack.expandType;
-            newPack.UpdateFixedPatterns(element, Pattern);
-            newPack.UpdateSetsFromFixedPatterns();
-
-            addNewPackToStack();
-            state = StackState.Adding;
-        }
-
-        public void PrintResults()
-        {
-            Console.WriteLine(Results.Count);
-            foreach (var result in Results)
-            {
-                result.Print();
-            }
-        }
-
-
-    }
-}
+    */
