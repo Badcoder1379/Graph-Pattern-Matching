@@ -14,7 +14,7 @@ namespace PatternMatching.Package.logic
         public Stack<StackPack> StackPack = new Stack<StackPack>();
         private StackPack lastPack;
         private StackPack newPack;
-        public static readonly int PageMax = 1000;
+        public static readonly int PageMax = 1;
         public List<FixedPattern> Results = new List<FixedPattern>();
         private StackState state = StackState.Removing;
 
@@ -111,6 +111,7 @@ namespace PatternMatching.Package.logic
             CreateNewPack(element, 1, pageCount);
             var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
             newPack.SetsMap[element.ID] = expandedElements;
+            newPack.FixedElements.Add(element.ID);
             if (element is Node)
             {
                 newPack.expandType = ExpandType.newNode;
@@ -130,14 +131,14 @@ namespace PatternMatching.Package.logic
             var element = newPack.LastElementExpanded;
             if (element is Node)
             {
-                return expander.ExpandNode((Node)element, newPack.GetPossibleIds(element.ID), page).ToList();
+                return expander.ExpandNode((Node)element, newPack.GetPossibleIds(element.ID, Pattern), page).ToList();
             }
             else
             {
                 var link = (Link)element;
                 return expander.ExpandLink(link,
-                    newPack.GetPossibleIds(link.Source),
-                    newPack.GetPossibleIds(link.Target),
+                    newPack.GetPossibleIds(link.Source, Pattern),
+                    newPack.GetPossibleIds(link.Target, Pattern),
                     page);
             }
         }
@@ -149,13 +150,13 @@ namespace PatternMatching.Package.logic
             var dict = new Dictionary<Element, int>();
             foreach (var link in links)
             {
-                var possibleSources = lastPack == null ? null : lastPack.GetPossibleIds(link.Source);
-                var possibleTargets = lastPack == null ? null : lastPack.GetPossibleIds(link.Target);
+                var possibleSources = lastPack == null ? null : lastPack.GetPossibleIds(link.Source, Pattern);
+                var possibleTargets = lastPack == null ? null : lastPack.GetPossibleIds(link.Target, Pattern);
                 dict[link] = expander.CountLink(link,possibleSources, possibleTargets);
             }
             foreach (var node in nodes)
             {
-                var possibleIds = (lastPack == null ? null : lastPack.GetPossibleIds(node.ID));
+                var possibleIds = (lastPack == null ? null : lastPack.GetPossibleIds(node.ID, Pattern));
                 dict[node] = expander.CountNode(node, possibleIds);
             }
             return dict.OrderByDescending(x => x.Value).First();
@@ -177,7 +178,6 @@ namespace PatternMatching.Package.logic
                 newPack.SetsMap = new Dictionary<Guid, List<Element>>();
                 newPack.FixedPatterns = new List<FixedPattern>();
             }
-            newPack.FixedElements.Add(element.ID);
             newPack.Page = page;
             if (pageCount == -1)
             {
@@ -188,21 +188,20 @@ namespace PatternMatching.Package.logic
             {
                 newPack.PageCount = pageCount;
             }
-            ;
         }
 
         private int CountElement(Element element)
         {
             if (element is Node)
             {
-                return expander.CountNode((Node)element, newPack.GetPossibleIds(element.ID));
+                return expander.CountNode((Node)element, newPack.GetPossibleIds(element.ID, Pattern));
             }
             else
             {
                 var link = (Link)element;
                 return expander.CountLink(link,
-                    newPack.GetPossibleIds(link.Source),
-                    newPack.GetPossibleIds(link.Target));
+                    newPack.GetPossibleIds(link.Source, Pattern),
+                    newPack.GetPossibleIds(link.Target, Pattern));
             }
         }
 
@@ -243,13 +242,14 @@ namespace PatternMatching.Package.logic
         {
             var element = lastPack.LastElementExpanded;
             CreateNewPack(element, lastPack.Page + 1, lastPack.PageCount);
-            var expandedElements = ExpandLastElementOfNewPack(newPack.Page + 1);
+            var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
             newPack.SetsMap[element.ID] = expandedElements;
             newPack.expandType = lastPack.expandType;
             newPack.UpdateFixedPatterns(element, Pattern);
             newPack.UpdateSetsFromFixedPatterns();
             newPack.FixedPatterns = newPack.FixedPatterns.Union(lastPack.FixedPatterns).ToList();
             newPack.SetsMap[element.ID] = newPack.SetsMap[element.ID].Union(lastPack.SetsMap[element.ID]).ToList();
+            newPack.FixedElements.Add(element.ID);
             PopLastPackFromStack();
             AddNewPackToStack();
             state = StackState.Adding;
@@ -266,6 +266,7 @@ namespace PatternMatching.Package.logic
             CreateNewPack(element, popedPack.Page + 1, popedPack.PageCount);
             var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
             newPack.SetsMap[element.ID] = expandedElements;
+            newPack.FixedElements.Add(element.ID);
             newPack.expandType = popedPack.expandType;
             newPack.UpdateFixedPatterns(element, Pattern);
             newPack.UpdateSetsFromFixedPatterns();

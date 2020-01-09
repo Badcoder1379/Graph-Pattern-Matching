@@ -9,7 +9,7 @@ namespace PatternMatching
     {
         static void Main(string[] args)
         {
-            GraphMaker.Create(1000, 1000, "../src/graph/");
+            //GraphMaker.Create(100, 100, "../src/graph/");
             // GraphMaker.Create(1, 0, "../src/pattern/");
             var graphImporter = new Importer();
             graphImporter.Import("../src/graph/");

@@ -81,13 +81,45 @@ namespace PatternMatching.Package.model
         }
 
 
-        public List<Guid> GetPossibleIds(Guid id)
+        public List<Guid> GetPossibleIds(Guid id, Pattern pattern)
         {
-            if (SetsMap.ContainsKey(id))
+            if (pattern.Links.Select(link => link.ID).Contains(id)) // link
             {
-                return SetsMap[id].Select(x => x.ID).ToList();
+                return SetsMap.ContainsKey(id) ? SetsMap[id].Select(link => link.ID).ToList() : null;
             }
-            return null;
+            else // node
+            {
+                var sets = new List<List<Guid>>();
+                foreach(var link in pattern.Links)
+                {
+                    if(link.Source == id && FixedElements.Contains(link.ID))
+                    {
+                        sets.Add(SetsMap[link.ID].Select(l => ((Link)l).Source).ToList());
+                    }
+                }
+                foreach (var link in pattern.Links)
+                {
+                    if (link.Target == id && FixedElements.Contains(link.ID))
+                    {
+                        sets.Add(SetsMap[link.ID].Select(l => ((Link)l).Target).ToList());
+                    }
+                }
+               
+                if (sets.Count == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    while (sets.Count > 1)
+                    {
+                        var temp = sets[0];
+                        sets.RemoveAt(0);
+                        sets[0] = sets[0].Where(x => temp.Contains(x)).ToList();
+                    }
+                    return sets[0];
+                }
+            }
         }
 
 
