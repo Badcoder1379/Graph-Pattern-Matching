@@ -46,6 +46,16 @@ namespace PatternMatching.Package.model
         /// <param name="pattern"></param>
         public void UpdateFixedPatterns(Element newExpandedElement, Pattern pattern)
         {
+            if(FixedElements.Count == 1 && FixedPatterns.Count == 0)
+            {
+                foreach (var element in SetsMap[LastElementExpanded.ID])
+                {
+                    var fixedPattern = new FixedPattern();
+                    fixedPattern.fixedElementsMap[LastElementExpanded.ID] = element;
+                    FixedPatterns.Add(fixedPattern);
+                }
+                return;
+            }
             var condidates = SetsMap[newExpandedElement.ID];
             var updatedList = new List<FixedPattern>();
             if (newExpandedElement is Node) //when our new expanded element is a node
