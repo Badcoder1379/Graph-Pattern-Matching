@@ -54,7 +54,7 @@ namespace PatternMatching.Package.logic
         public List<Element> GetAllLinks(string label, List<Guid> possibleSources, List<Guid> possibleTargets)
         {
             return Links.Where(link => (link.Label == label) &&
-            (possibleSources == null || possibleSources.Contains(link.ID)) &&
+            (possibleSources == null || possibleSources.Contains(link.Source)) &&
             (possibleTargets == null || possibleTargets.Contains(link.Target))).Select(link => (Element)link).ToList();
         }
         public List<Element> GetAllNodes(string label, List<Guid> possibleIDs)

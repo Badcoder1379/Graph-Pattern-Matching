@@ -16,7 +16,6 @@ namespace PatternMatching.Package.logic
         private StackPack newPack;
         public static readonly int PageMax = 1;
         public List<FixedPattern> Results = new List<FixedPattern>();
-        private StackState state = StackState.Removing;
 
         public Business(Pattern pattern, Expander expander)
         {
@@ -41,6 +40,10 @@ namespace PatternMatching.Package.logic
         private void Algorithm()
         {
             ExpandElementOfMinCount();
+            if(newPack == null)
+            {
+                return;
+            }
             while (StackPack.Count > 0)
             {
                 while (true)
@@ -54,11 +57,13 @@ namespace PatternMatching.Package.logic
                     {
                         break;
                     }
+                    
                     if(lastPack.SetsMap[lastPack.LastElementExpanded.ID].Count < PageMax / 2 && lastPack.Page < lastPack.PageCount)
                     {
                         CombineLastPackWithANewPack();
                         continue;
                     }
+                    
                     AddingExpand();
                 }
                 while (true)
@@ -97,12 +102,17 @@ namespace PatternMatching.Package.logic
             var minPair = FindOptimomAndMinimomStage();
             var element = minPair.Key;
             var count = minPair.Value;
-            if(count == 0)
+            if(count > 0)
             {
-                newPack.FixedPatterns = new List<FixedPattern>();
-                return;
+                ExpandElement(element, count);
             }
-            ExpandElement(element, count);
+            else
+            {
+                if (newPack != null)
+                {
+                    newPack.FixedPatterns = new List<FixedPattern>();
+                }
+            }
         }
 
         private void ExpandElement(Element element, int count)
@@ -122,7 +132,6 @@ namespace PatternMatching.Package.logic
             }
             newPack.UpdateFixedPatterns(element, Pattern);
             newPack.UpdateSetsFromFixedPatterns();
-            state = StackState.Adding;
             AddNewPackToStack();
         }
 
@@ -159,7 +168,8 @@ namespace PatternMatching.Package.logic
                 var possibleIds = (lastPack == null ? null : lastPack.GetPossibleIds(node.ID, Pattern));
                 dict[node] = expander.CountNode(node, possibleIds);
             }
-            return dict.OrderByDescending(x => x.Value).First();
+            var min = dict.OrderByDescending(x => x.Value).First();
+            return min;
         }
 
         private void CreateNewPack(Element element, int page, int pageCount)
@@ -209,7 +219,6 @@ namespace PatternMatching.Package.logic
         {
             StackPack.Push(newPack);
             lastPack = newPack;
-            state = StackState.Adding;
         }
 
         private void PopLastPackFromStack()
@@ -223,7 +232,6 @@ namespace PatternMatching.Package.logic
             {
                 lastPack = null;
             }
-            state = StackState.Removing;
         }
 
 
@@ -241,18 +249,10 @@ namespace PatternMatching.Package.logic
         private void CombineLastPackWithANewPack()
         {
             var element = lastPack.LastElementExpanded;
-            CreateNewPack(element, lastPack.Page + 1, lastPack.PageCount);
-            var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
-            newPack.SetsMap[element.ID] = expandedElements;
-            newPack.expandType = lastPack.expandType;
-            newPack.UpdateFixedPatterns(element, Pattern);
-            newPack.UpdateSetsFromFixedPatterns();
-            newPack.FixedPatterns = newPack.FixedPatterns.Union(lastPack.FixedPatterns).ToList();
-            newPack.SetsMap[element.ID] = newPack.SetsMap[element.ID].Union(lastPack.SetsMap[element.ID]).ToList();
-            newPack.FixedElements.Add(element.ID);
-            PopLastPackFromStack();
-            AddNewPackToStack();
-            state = StackState.Adding;
+            var popedPack = lastPack;
+            ChangeLastPagebyNextPage();
+            newPack.SetsMap[element.ID] = newPack.SetsMap[element.ID].Union(popedPack.SetsMap[element.ID]).ToList();
+            newPack.FixedPatterns = newPack.FixedPatterns.Union(popedPack.FixedPatterns).ToList();
         }
 
 
@@ -272,7 +272,6 @@ namespace PatternMatching.Package.logic
             newPack.UpdateSetsFromFixedPatterns();
 
             AddNewPackToStack();
-            state = StackState.Adding;
         }
 
         public void PrintResults()
