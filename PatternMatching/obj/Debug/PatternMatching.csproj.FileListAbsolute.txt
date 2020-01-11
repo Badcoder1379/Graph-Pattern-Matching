@@ -10,3 +10,9 @@ P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.pdb
 P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe.config
 P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe
 P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.pdb
+F:\Pttern Matching\PatternMatching\bin\Debug\PatternMatching.exe.config
+F:\Pttern Matching\PatternMatching\bin\Debug\PatternMatching.exe
+F:\Pttern Matching\PatternMatching\bin\Debug\PatternMatching.pdb
+F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
+F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.exe
+F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.pdb
