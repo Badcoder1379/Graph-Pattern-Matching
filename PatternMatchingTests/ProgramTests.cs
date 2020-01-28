@@ -15,6 +15,11 @@ namespace PatternMatching.Tests
     [TestClass()]
     public class ProgramTests
     {
+        [TestMethod]
+        public void p0()
+        {
+            Program.Main(null);
+        }
 
         [TestMethod]
         public void p1()

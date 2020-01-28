@@ -14,7 +14,7 @@ namespace PatternMatching.Package.logic
         public Stack<StackPack> StackPack = new Stack<StackPack>();
         private StackPack lastPack;
         private StackPack newPack;
-        public static readonly int PageMax = 1;
+        public static readonly int PageMax = 10;
         public List<FixedPattern> Results = new List<FixedPattern>();
 
         public Business(Pattern pattern, Expander expander)
@@ -279,77 +279,3 @@ namespace PatternMatching.Package.logic
     }
 }
 
-/*
-   private void NextExpand1()
-        {
-            if (lastPack.IsFinished(Pattern))
-            {
-                Results = Results.Union(lastPack.FixedPatterns).ToList();
-                if (StackPack.Count == 1 && this.lastPack.Page < this.lastPack.PageCount)
-                {
-                    changeLastPagebyNewPage();
-                }
-                else
-                {
-                    popLastPackFromStack();
-                }
-                return;
-            }
-            if (lastPack.FixedPatterns.Count == 0)
-            {
-                if (lastPack.PageCount > lastPack.Page)
-                {
-                    changeLastPagebyNewPage();
-                    return;
-                }
-                else
-                {
-                    popLastPackFromStack();
-                    return;
-                }
-            }
-
-            if (state == StackState.Removing)
-            {
-                //changing
-                if (lastPack.Page < lastPack.PageCount)
-                {
-                    changeLastPagebyNewPage();
-                }
-                else
-                {
-                    //TODO
-                }
-                return;
-            }
-            else
-            {
-                // combinning next page to last page
-                if (lastPack.SetsMap[lastPack.LastElementExpanded.ID].Count < PageMax / 2 && lastPack.Page < lastPack.PageCount)
-                {
-                    combineLastPageAndNewPage();
-                    state = StackState.Adding;
-                    addNewPackToStack();
-                    return;
-                }
-                //adding next stage
-                if (lastPack.expandType == ExpandType.newNode || lastPack.expandType == ExpandType.patternComplitions)
-                {
-                    var links = Pattern.GetAllNotConpeletedLinks(newPack.FixedElements);
-                    if (links.Count > 0)
-                    {
-                        var link = links.First();
-                        expandNewElement(link, -1);
-                        state = StackState.Adding;
-                        addNewPackToStack();
-                        return;
-                    }
-                }
-                expandNewElement();
-                addNewPackToStack();
-                state = StackState.Adding;
-            }
-
-        }
-
-    */
