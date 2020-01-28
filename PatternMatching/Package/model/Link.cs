@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class Link : Element
+    public class Link : Element
     {
         public Guid Source;
         public Guid Target;

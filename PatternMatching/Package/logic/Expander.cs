@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class Expander
+    public class Expander
     {
         public SourceManagement sourceManagemen;
         public Importer Importer = new Importer();

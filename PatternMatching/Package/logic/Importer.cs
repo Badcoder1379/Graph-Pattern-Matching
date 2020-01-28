@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class Importer
+    public class Importer
     {
         public List<Node> Nodes = new List<Node>();
         public List<Link> Links = new List<Link>();

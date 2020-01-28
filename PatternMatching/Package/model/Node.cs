@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class Node : Element
+    public class Node : Element
     {
-
         public Node(Guid iD, Property property, string label)
         {
             ID = iD;

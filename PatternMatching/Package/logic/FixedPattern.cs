@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class FixedPattern
+    public class FixedPattern
     {
 
         public bool finished = false;

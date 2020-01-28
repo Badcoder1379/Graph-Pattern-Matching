@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching
 {
-    class GraphMaker
+    public class RandomGraph
     {
         public static void Create(int nodeCount, int edgeCount ,string address)
         {

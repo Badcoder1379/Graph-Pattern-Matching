@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    enum ExpandType
+    public enum ExpandType
     {
         newLink,
         newNode,

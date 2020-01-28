@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class Graph
+    public class Graph
     {
         public List<Node> Nodes;
         public List<Link> Links;

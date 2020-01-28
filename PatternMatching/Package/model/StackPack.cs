@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class StackPack
+    public class StackPack
     {
         public int Page;
         public int PageCount;

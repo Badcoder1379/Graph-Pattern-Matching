@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class SourceManagement
+    public class SourceManagement
     {
         public HashSet<Element> GetNodes(Element node, HashSet<Guid> possibleIDs)
         {

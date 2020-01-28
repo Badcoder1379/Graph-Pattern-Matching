@@ -4,7 +4,6 @@ P:\New folder\PatternMatching\PatternMatching\bin\Debug\PatternMatching.pdb
 P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
 P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.exe
 P:\New folder\PatternMatching\PatternMatching\obj\Debug\PatternMatching.pdb
-P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
 P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.exe
 P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.pdb
 P:\PatternMatching\PatternMatching\bin\Debug\PatternMatching.exe.config
@@ -16,3 +15,9 @@ F:\Pttern Matching\PatternMatching\bin\Debug\PatternMatching.pdb
 F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
 F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.exe
 F:\Pttern Matching\PatternMatching\obj\Debug\PatternMatching.pdb
+P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.dll
+P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll
+P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.xml
+P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
+P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csproj.CopyComplete
+P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache

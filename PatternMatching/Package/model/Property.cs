@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class Property
+    public class Property
     {
        
         public bool Equals(Property other)

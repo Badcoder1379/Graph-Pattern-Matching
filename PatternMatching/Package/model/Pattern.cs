@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    class Pattern
+    public class Pattern
     {
         public List<Node> Nodes;
         public List<Link> Links;

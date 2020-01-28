@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.model
 {
-    enum StackState
+    public enum StackState
     {
         Adding,
         Removing,

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PatternMatching.Package.logic
 {
-    class Business
+    public class Business
     {
         public Pattern Pattern;
         public Expander expander;
@@ -25,15 +25,7 @@ namespace PatternMatching.Package.logic
 
         public void Run()
         {
-           // ExpandFirstTimeAndFirstPack();
             Algorithm();
-            /*
-            state = StackState.Adding;
-            while (StackPack.Count > 0)
-            {
-                NextExpand1();
-            }
-            */
         }
 
 
