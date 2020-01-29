@@ -13,31 +13,69 @@ namespace PatternMatching.Package.logic
 {
     public class Expander
     {
-        public SourceManagement sourceManagemen;
-        public Importer Importer = new Importer();
+        private SourceManagement sourceManagemen;
+        private Importer importer = new Importer();
+        public bool dataBase = false;
 
         public Expander(Importer importer)
         {
-            Importer = importer;
+            this.importer = importer;
+        }
+
+        public Expander(SourceManagement sourceManagement)
+        {
+            this.sourceManagemen = sourceManagemen;
         }
 
         public int CountLink(Link link, List<Guid> possibleSources, List<Guid> possibleTargets)
         {
-            return Importer.GetAllLinks(link.Label, possibleSources, possibleTargets).Count;
+            if (dataBase)
+            {
+                return 0;
+            }
+            else
+            {
+                return importer.GetAllLinks(link.Label, possibleSources, possibleTargets).Count;
+            }
         }
+
         public int CountNode(Node node, List<Guid> possibleIds)
         {
-            return Importer.GetAllNodes(node.Label, possibleIds).Count;
+            if (dataBase)
+            {
+                return 0;
+            }
+            else
+            {
+                return importer.GetAllNodes(node.Label, possibleIds).Count;
+            }
         }
+
 
         public List<Element> ExpandNode(Node node, List<Guid> possibleIds, int pageNumber)
         {
-            return Importer.ImportNodes(node.Label, possibleIds, pageNumber);
+            if (dataBase)
+            {
+                return null;
+            }
+            else
+            {
+                return importer.ImportNodes(node.Label, possibleIds, pageNumber);
+            }
+
         }
 
         public List<Element> ExpandLink(Link link, List<Guid> possibleSpurces, List<Guid> possibleTargets, int pageNumber)
         {
-            return Importer.ImportLinks(link.Label, possibleSpurces, possibleTargets, pageNumber);
+            if (dataBase)
+            {
+                return null;
+            }
+            else
+            {
+                return importer.ImportLinks(link.Label, possibleSpurces, possibleTargets, pageNumber);
+            }
+
         }
     }
 }

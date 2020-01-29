@@ -21,3 +21,13 @@ P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform
 P:\PatternMatching\PatternMatching\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
 P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csproj.CopyComplete
 P:\PatternMatching\PatternMatching\obj\Debug\PatternMatching.csprojAssemblyReference.cache
+P:\PatternMatching\PatternMatching\bin\Debug\Elasticsearch.Net.dll
+P:\PatternMatching\PatternMatching\bin\Debug\Nest.dll
+P:\PatternMatching\PatternMatching\bin\Debug\System.Buffers.dll
+P:\PatternMatching\PatternMatching\bin\Debug\System.Diagnostics.DiagnosticSource.dll
+P:\PatternMatching\PatternMatching\bin\Debug\Elasticsearch.Net.pdb
+P:\PatternMatching\PatternMatching\bin\Debug\Elasticsearch.Net.xml
+P:\PatternMatching\PatternMatching\bin\Debug\Nest.pdb
+P:\PatternMatching\PatternMatching\bin\Debug\Nest.xml
+P:\PatternMatching\PatternMatching\bin\Debug\System.Buffers.xml
+P:\PatternMatching\PatternMatching\bin\Debug\System.Diagnostics.DiagnosticSource.xml
