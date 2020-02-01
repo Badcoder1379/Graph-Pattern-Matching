@@ -18,119 +18,15 @@ namespace PatternMatching
             var settings = new ConnectionSettings(new Uri("http://localhost:9200")).DefaultIndex("mmdgraph").DisableDirectStreaming();
             var client = new ElasticClient(settings);
 
+            //var graphImporter = new Importer();
+            //var graph = graphImporter.Import("../src/p2/");
+            //WriteToDB(client, graph);
 
+            //Create(client, 100, 100);
 
-            var maxList = new[] { 1, 2, 3, 4, 5 };
-            var counterType = "counter-type";
-            var lowerBound = DateTime.UtcNow.Date.AddDays(-7);
-
-            Term(client, "d69bea0f-ceab-46fb-b9b4-fc8527df3d3f", "D");
+            PM(client);
             return;
 
-
-            /*
-            var queryResult = client.Search<String>(s => s
-                .Query(q => +q.Term(x => x.Type, counterType) && +q
-                    .Terms(t => t
-                        .Field(x => x.CounterId)
-                        .Terms(maxList)
-                    )
-                )
-                .AllTypes()
-                .Scroll("1m")
-                .Size(10000)
-            );
-            */
-
-            //Create(client, 3, 3);
-            //GetAll(client);
-            GetNodeByID(client, "e8cfa0af-867b-46e4-8a7f-77a950daa737", "A");
-        }
-
-        internal static void GetNodeByList(ElasticClient client, string id, string label)
-        {
-
-
-            var response = client.Search<Node>(s => s.Query(q => +q.Match(m => m
-                .Field(f => f.ID)
-                .Query(id)
-                ) && +q.Match(m => m.Field(f => f.Label).Query(label))
-                    && +q.Terms(c => c
-                    .Name("named_query")
-                    .Boost(1.1)
-                    .Field(p => p.Label)
-                    .Terms(label)
-                )));
-
-        }
-
-
-        internal static void Term(ElasticClient client, string id, string label)
-        {
-            var possibleIDs = new List<string>();
-            possibleIDs.Add(id);
-
-            var labelQuery = new MatchQuery
-            {
-                Field = "label",
-                Query = label
-            };
-
-            var idsQuery = new TermsQuery
-            {
-                Field = "iD.keyword",
-                Terms = possibleIDs
-            };
-
-            var query = new BoolQuery()
-            {
-                Filter = new List<QueryContainer>
-                {
-                    labelQuery,
-                    idsQuery
-                }
-            };
-
-            var result = client.Search<Node>(x => x
-                .Query(q => query)
-            /*
-            .Index()
-            .From()
-            .Size()
-            */
-            );
-        }
-
-        internal static void GetNodeByID(ElasticClient client, string id, string label)
-        {
-            var response = client.Search<Node>(s => s.Query(q => +q.Match(m => m
-                .Field(f => f.ID)
-                .Query(id)
-                ) && +q.Match(m => m.Field(f => f.Label).Query(label))));
-
-            var node = response.Hits.First().Source;
-
-            var list = new List<string>();
-            list.Add(id);
-
-            var countReponse = client.Count<Node>(c => c.Query(q => +q.Terms(t => t.Field(x => x.ID).Terms(list))));
-
-            var count = countReponse.Count;
-
-        }
-
-
-
-        public static void GetAll(ElasticClient client)
-        {
-            var response = client.Search<Node>();
-
-
-            var results = response.Documents.ToList();
-            foreach (var result in results)
-            {
-                Console.WriteLine(result.ID);
-            }
         }
 
         public static void Create(ElasticClient client, int nodesCount, int edgesCount)
@@ -142,7 +38,7 @@ namespace PatternMatching
             var idList = new Guid[nodesCount];
             for (int i = 0; i < nodesCount; i++)
             {
-                char randomChar = (char)rnd.Next('A', 'F');
+                char randomChar = (char)rnd.Next('A', 'C');
                 var node = new Node(Guid.NewGuid(), null, randomChar.ToString());
                 idList[i] = node.ID;
                 client.IndexDocument(node);
@@ -178,9 +74,22 @@ namespace PatternMatching
 
             var patternImpoter = new Importer();
 
-            var bussiness = new Business(new Pattern(patternImpoter.Import("../src/p0/")), expander);
+            var bussiness = new Business(new Pattern(patternImpoter.Import("../src/p2/")), expander);
             bussiness.Run();
             bussiness.PrintResults();
+        }
+
+
+        public static void WriteToDB(ElasticClient client,Graph graph)
+        {
+            foreach(var node in graph.Nodes)
+            {
+                client.IndexDocument(node);
+            }
+            foreach (var link in graph.Links)
+            {
+                client.IndexDocument(link);
+            }
         }
     }
 }
