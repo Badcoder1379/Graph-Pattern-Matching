@@ -16,30 +16,154 @@ namespace PatternMatching.Package.logic
             this.client = client;
         }
 
-        public HashSet<Element> GetNodes(Element node, HashSet<Guid> possibleIDs)
+        public List<Node> GetNodes(Element node, List<Guid> possibleIDs, int pageNumber)
         {
-            return null;
+            var labelQuery = new MatchQuery
+            {
+                Field = "label",
+                Query = node.Label
+            };
+
+            var idsQuery = new TermsQuery
+            {
+                Field = "iD.keyword",
+                Terms = possibleIDs.Cast<object>().AsEnumerable()
+            };
+
+            var query = new BoolQuery()
+            {
+                Filter = new List<QueryContainer>
+                {
+                    labelQuery,
+                    idsQuery
+                }
+            };
+
+            var result = client.Search<Node>(x => x
+                .Query(q => query)
+                .From(pageNumber * Business.PageMax)
+                .Size(Business.PageMax)
+
+            );
+            return result.Hits.Cast<Node>().ToList();
         }
 
-        public HashSet<Element> GetLinks(Element link, HashSet<Guid> possibleSpurces, HashSet<Guid> possibleTargets)
+        public List<Link> GetLinks(Element link, List<Guid> possibleSpurces, List<Guid> possibleTargets, int pageNumber)
         {
-            return null;
+            var labelQuery = new MatchQuery
+            {
+                Field = "label",
+                Query = link.Label
+            };
+
+            var sourceQuery = new TermsQuery
+            {
+                Field = "source.keyword",
+                Terms = possibleSpurces.Cast<object>().AsEnumerable()
+            };
+
+            var targetQuery = new TermsQuery
+            {
+                Field = "iD.keyword",
+                Terms = possibleTargets.Cast<object>().AsEnumerable()
+            };
+
+
+
+            var query = new BoolQuery()
+            {
+                Filter = new List<QueryContainer>
+                {
+                    labelQuery,
+                    targetQuery,
+                    sourceQuery
+                }
+            };
+
+            var result = client.Search<Link>(x => x
+                .Query(q => query)
+                .From(pageNumber * Business.PageMax)
+                .Size(Business.PageMax)
+            );
+            return result.Hits.Cast<Link>().ToList();
         }
 
-        public int CountNode(Node node)
+        public int CountNode(Element node, List<Guid> possibleIDs)
         {
-            var count = client.Count<Node>(c => c.Query(q => q
-                .Match(m => m.Field(f => f.ID)
-                    .Query(node.ID.ToString())) && q.Match(m => m.Field(f => f.Label).Query(node.Label)))).Count;
-            return (int)count;
+            var labelQuery = new MatchQuery
+            {
+                Field = "label",
+                Query = node.Label
+            };
+
+            var idsQuery = new TermsQuery
+            {
+                Field = "iD.keyword",
+                Terms = possibleIDs.Cast<object>().AsEnumerable()
+            };
+
+            var query = new BoolQuery()
+            {
+                Filter = new List<QueryContainer>
+                {
+                    labelQuery,
+                    idsQuery
+                }
+            };
+
+            var result = client.Count<Node>(x => x
+                .Query(q => query)
+            /*
+            .Index()
+            .From()
+            .Size()
+            */
+            );
+
+            return (int)result.Count;
         }
 
-        public int CountLink(Link link)
+        public int CountLink(Element link, List<Guid> possibleSpurces, List<Guid> possibleTargets)
         {
-            var count = client.Count<Node>(c => c.Query(q => q.Match(m => m.Field(f => f.Label).Query(link.Label)))).Count;
-            return (int)count;
-        }
+            var labelQuery = new MatchQuery
+            {
+                Field = "label",
+                Query = link.Label
+            };
 
-        
+            var sourceQuery = new TermsQuery
+            {
+                Field = "source.keyword",
+                Terms = possibleSpurces.Cast<object>().AsEnumerable()
+            };
+
+            var targetQuery = new TermsQuery
+            {
+                Field = "iD.keyword",
+                Terms = possibleTargets.Cast<object>().AsEnumerable()
+            };
+
+
+
+            var query = new BoolQuery()
+            {
+                Filter = new List<QueryContainer>
+                {
+                    labelQuery,
+                    targetQuery,
+                    sourceQuery
+                }
+            };
+
+            var result = client.Count<Link>(x => x
+                .Query(q => query)
+            /*
+            .Index()
+            .From()
+            .Size()
+            */
+            );
+            return (int)result.Count;
+        }
     }
 }

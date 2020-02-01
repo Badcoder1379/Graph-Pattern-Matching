@@ -25,13 +25,14 @@ namespace PatternMatching.Package.logic
         public Expander(SourceManagement sourceManagement)
         {
             this.sourceManagemen = sourceManagemen;
+            this.dataBase = true;
         }
 
         public int CountLink(Link link, List<Guid> possibleSources, List<Guid> possibleTargets)
         {
             if (dataBase)
             {
-                return 0;
+                return sourceManagemen.CountLink(link, possibleSources, possibleTargets);
             }
             else
             {
@@ -43,7 +44,7 @@ namespace PatternMatching.Package.logic
         {
             if (dataBase)
             {
-                return 0;
+                return sourceManagemen.CountNode(node, possibleIds);
             }
             else
             {
@@ -56,7 +57,7 @@ namespace PatternMatching.Package.logic
         {
             if (dataBase)
             {
-                return null;
+                return sourceManagemen.GetNodes(node, possibleIds, pageNumber).Cast<Element>().ToList();
             }
             else
             {
@@ -69,7 +70,7 @@ namespace PatternMatching.Package.logic
         {
             if (dataBase)
             {
-                return null;
+                return sourceManagemen.GetLinks(link, possibleSpurces, possibleTargets, pageNumber).Cast<Element>().ToList();
             }
             else
             {
