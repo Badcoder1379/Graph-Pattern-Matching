@@ -11,17 +11,18 @@ namespace PatternMatching.Package.model
     {
         public int Page;
         public int PageCount;
-        public Element LastElementExpanded;
+        public Element LastFoundedElement;
         public List<FixedPattern> FixedPatterns = new List<FixedPattern>();
         public ExpandType expandType;
         public Dictionary<Guid, List<Element>> SetsMap = new Dictionary<Guid, List<Element>>();
-        public List<Guid> FixedElements = new List<Guid>();
+        public Stack<Guid> FixedElements = new Stack<Guid>();
+        public Stack<Guid> expandedElements = new Stack<Guid>();
 
         public StackPack(int page, int pageCount, Element lastElementExpanded, ExpandType expandType)
         {
             Page = page;
             PageCount = pageCount;
-            LastElementExpanded = lastElementExpanded;
+            LastFoundedElement = lastElementExpanded;
             this.expandType = expandType;
         }
 
@@ -46,14 +47,35 @@ namespace PatternMatching.Package.model
         /// <param name="pattern"></param>
         public void UpdateFixedPatterns(Element newExpandedElement, Pattern pattern)
         {
-            if(FixedElements.Count == 1 && FixedPatterns.Count == 0)
+            if (SetsMap.Count > FixedElements.Count + 1)
             {
-                foreach (var element in SetsMap[LastElementExpanded.ID])
+                var linkId = expandedElements.Pop();
+                var nodeId = expandedElements.Peek();
+                expandedElements.Push(linkId);
+                NormalUpdateFixedPatterns(pattern.GetElementByID(linkId), pattern);
+                NormalUpdateFixedPatterns(pattern.GetElementByID(nodeId), pattern);
+            }
+            else
+            {
+                if (pattern.IsConnected(this.SetsMap.Keys.ToList()))
+                {
+                    NormalUpdateFixedPatterns(newExpandedElement, pattern);
+                }
+            }
+        }
+
+
+        private void NormalUpdateFixedPatterns(Element newExpandedElement, Pattern pattern)
+        {
+            if (SetsMap.Count == 1 && FixedPatterns.Count == 0)
+            {
+                foreach (var element in SetsMap[LastFoundedElement.ID])
                 {
                     var fixedPattern = new FixedPattern();
-                    fixedPattern.fixedElementsMap[LastElementExpanded.ID] = element;
+                    fixedPattern.fixedElementsMap[LastFoundedElement.ID] = element;
                     FixedPatterns.Add(fixedPattern);
                 }
+                FixedElements.Push(newExpandedElement.ID);
                 return;
             }
             var condidates = SetsMap[newExpandedElement.ID];
@@ -77,12 +99,15 @@ namespace PatternMatching.Package.model
                     updatedList = updatedList.Union(newFixedPatterns).ToList();
                 }
             }
+            FixedElements.Push(newExpandedElement.ID);
             FixedPatterns = updatedList;
         }
 
 
         public List<Guid> GetPossibleIds(Guid id, Pattern pattern)
         {
+            var expandedElements = this.SetsMap.Keys.ToList();
+
             if (pattern.Links.Select(link => link.ID).Contains(id)) // link
             {
                 return SetsMap.ContainsKey(id) ? SetsMap[id].Select(link => link.ID).ToList() : null;
@@ -92,14 +117,14 @@ namespace PatternMatching.Package.model
                 var sets = new List<List<Guid>>();
                 foreach(var link in pattern.Links)
                 {
-                    if(link.Source == id && FixedElements.Contains(link.ID))
+                    if(link.Source == id && expandedElements.Contains(link.ID))
                     {
                         sets.Add(SetsMap[link.ID].Select(l => ((Link)l).Source).ToList());
                     }
                 }
                 foreach (var link in pattern.Links)
                 {
-                    if (link.Target == id && FixedElements.Contains(link.ID))
+                    if (link.Target == id && expandedElements.Contains(link.ID))
                     {
                         sets.Add(SetsMap[link.ID].Select(l => ((Link)l).Target).ToList());
                     }
@@ -125,7 +150,7 @@ namespace PatternMatching.Package.model
 
         public bool IsFinished(Pattern pattern)
         {
-            if (SetsMap.Keys.Count == pattern.AllElements.Count)
+            if (FixedElements.Count == pattern.AllElements.Count)
             {
                 return true;
             }

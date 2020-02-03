@@ -15,7 +15,7 @@ namespace PatternMatching.Package.model
 
         public Pattern(Graph graph)
             : this(graph.Nodes, graph.Links) { }
-            
+
 
         public Pattern(List<Node> nodes, List<Link> links)
         {
@@ -44,24 +44,38 @@ namespace PatternMatching.Package.model
                     resultList.Add(link.ID);
                 }
             }
-            return Links.Where(x => resultList.Contains(x.ID)).ToList();
+            return Links.Where(x => resultList.Contains(x.ID) && !fixedElements.Contains(x.ID)).ToList();
         }
 
         public List<Node> GetAllAdjucentNodes(List<Guid> fixedElements)
         {
             List<Guid> resultList = new List<Guid>();
-            foreach (Link link in Links)
+            foreach (Link link in Links.Where(link => fixedElements.Contains(link.ID)))
             {
-                if (fixedElements.Contains(link.ID) && !fixedElements.Contains(link.Target))
+                if (!fixedElements.Contains(link.Target))
                 {
                     resultList.Add(link.Target);
                 }
-                if (fixedElements.Contains(link.ID) && !fixedElements.Contains(link.Source))
+                if (!fixedElements.Contains(link.Source))
+                {
+                    resultList.Add(link.Source);
+                }
+
+            }
+
+            foreach (var link in Links)
+            {
+                if (fixedElements.Contains(link.Source) && !fixedElements.Contains(link.Target))
+                {
+                    resultList.Add(link.Target);
+                }
+                if (!fixedElements.Contains(link.Source) && fixedElements.Contains(link.Target))
                 {
                     resultList.Add(link.Source);
                 }
             }
-            return Nodes.Where(x => resultList.Contains(x.ID)).ToList();
+
+            return Nodes.Where(x => resultList.Contains(x.ID) && !fixedElements.Contains(x.ID)).ToList();
         }
 
         public List<Link> GetAllNotConpeletedLinks(List<Guid> fixedElements)
@@ -72,6 +86,42 @@ namespace PatternMatching.Package.model
         public List<Link> GetAllAdjucentLinks(Guid NodeId)
         {
             return Links.Where(x => x.Target == NodeId || x.Source == NodeId).ToList();
+        }
+
+        public bool IsConnected(List<Guid> expandedElements)
+        {
+            var dict = new Dictionary<Guid, int>();
+            int i = 0;
+            foreach (var node in Nodes.Where(node => expandedElements.Contains(node.ID)))
+            {
+                dict[node.ID] = i;
+                i++;
+            }
+
+            for (int j = 0; j < dict.Count; j++)
+            {
+                foreach (var link in Links.Where(link => expandedElements.Contains(link.ID) &&
+                                                    expandedElements.Contains(link.Source) &&
+                                                    expandedElements.Contains(link.Target)))
+                {
+                    var higherNode = link.Source;
+                    var lowerNode = link.Source;
+                    if (dict[link.Target] > dict[link.Source])
+                    {
+                        higherNode = link.Target;
+                        lowerNode = link.Source;
+                    }
+                    dict[higherNode] = dict[lowerNode];
+                }
+            }
+            int count = new HashSet<int>(dict.Values).Count;
+            return count < 2;
+        }
+
+
+        public Element GetElementByID(Guid id)
+        {
+            return AllElements.Where(element => element.ID == id).First();
         }
 
     }

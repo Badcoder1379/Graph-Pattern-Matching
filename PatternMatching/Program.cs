@@ -15,19 +15,57 @@ namespace PatternMatching
         public static void Main(string[] args)
         {
 
+            string fileName = "../src/sqr/";
+
+            //PMNoramal(fileName);
+
+
+
             var settings = new ConnectionSettings(new Uri("http://localhost:9200")).DefaultIndex("mmdgraph").DisableDirectStreaming();
             var client = new ElasticClient(settings);
+            PMDB(client, fileName);
 
-            //var graphImporter = new Importer();
-            //var graph = graphImporter.Import("../src/p2/");
-            //WriteToDB(client, graph);
 
-            //Create(client, 100, 100);
-
-            PM(client);
-            return;
+            //WriteToDB(client, fileName);
 
         }
+
+        public static void PMDB(ElasticClient client, string fileName)
+        {
+            //GraphMaker.Create(1000, 2000, "../src/star4g/");
+            //GraphMaker.Create(5, 4, "../src/rp/");
+
+            var sourceManagement = new SourceManagement(client);
+
+            //var graphImporter = new Importer();
+            //graphImporter.Import("../src/hard1/");
+            //var expander = new Expander(graphImporter);
+
+            var expander = new Expander(sourceManagement);
+
+            var patternImpoter = new Importer();
+
+            var bussiness = new Business(new Pattern(patternImpoter.Import(fileName)), expander);
+            bussiness.Run();
+            bussiness.PrintResults();
+        }
+
+        public static void PMNoramal(string fileNme)
+        {
+            var graphImporter = new Importer();
+            graphImporter.Import(fileNme);
+            var expander = new Expander(graphImporter);
+
+
+            var patternImpoter = new Importer();
+
+            var bussiness = new Business(new Pattern(patternImpoter.Import(fileNme)), expander);
+            bussiness.Run();
+            bussiness.PrintResults();
+        }
+
+
+
 
         public static void Create(ElasticClient client, int nodesCount, int edgesCount)
         {
@@ -59,30 +97,14 @@ namespace PatternMatching
 
         }
 
-        public static void PM(ElasticClient client)
+
+
+        public static void WriteToDB(ElasticClient client,string fileName)
         {
-            //GraphMaker.Create(1000, 2000, "../src/star4g/");
-            //GraphMaker.Create(5, 4, "../src/rp/");
+            var graphImporter = new Importer();
+            var graph = graphImporter.Import(fileName);
 
-            var sourceManagement = new SourceManagement(client);
-
-            //var graphImporter = new Importer();
-            //graphImporter.Import("../src/hard1/");
-            //var expander = new Expander(graphImporter);
-
-            var expander = new Expander(sourceManagement);
-
-            var patternImpoter = new Importer();
-
-            var bussiness = new Business(new Pattern(patternImpoter.Import("../src/p2/")), expander);
-            bussiness.Run();
-            bussiness.PrintResults();
-        }
-
-
-        public static void WriteToDB(ElasticClient client,Graph graph)
-        {
-            foreach(var node in graph.Nodes)
+            foreach (var node in graph.Nodes)
             {
                 client.IndexDocument(node);
             }

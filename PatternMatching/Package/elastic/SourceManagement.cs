@@ -78,7 +78,7 @@ namespace PatternMatching.Package.logic
             {
                 var targetQuery = new TermsQuery
                 {
-                    Field = "iD.keyword",
+                    Field = "target.keyword",
                     Terms = possibleTargets.Cast<object>().AsEnumerable()
                 };
                 filter.Add(targetQuery);
@@ -92,7 +92,7 @@ namespace PatternMatching.Package.logic
 
             var result = client.Search<Link>(x => x
                 .Query(q => query)
-                .From(pageNumber * Business.PageMax)
+                .From((pageNumber-1) * Business.PageMax)
                 .Size(Business.PageMax)
             );
             return result.Hits.Select(x => x.Source).ToList();
@@ -163,7 +163,7 @@ namespace PatternMatching.Package.logic
             {
                 var targetQuery = new TermsQuery
                 {
-                    Field = "iD.keyword",
+                    Field = "target.keyword",
                     Terms = possibleTargets.Cast<object>().AsEnumerable()
                 };
                 filter.Add(targetQuery);
