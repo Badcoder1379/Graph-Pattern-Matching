@@ -115,6 +115,11 @@ namespace PatternMatching.Package.model
             else // node
             {
                 var sets = new List<List<Guid>>();
+                if (SetsMap.ContainsKey(id))
+                {
+                    sets.Add(SetsMap[id].Select(node => node.ID).ToList());
+                }
+                
                 foreach(var link in pattern.Links)
                 {
                     if(link.Source == id && expandedElements.Contains(link.ID))

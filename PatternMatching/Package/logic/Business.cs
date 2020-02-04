@@ -49,12 +49,13 @@ namespace PatternMatching.Package.logic
                     {
                         break;
                     }
-                    
+                    /*
                     if(lastPack.SetsMap[lastPack.LastFoundedElement.ID].Count < PageMax / 2 && lastPack.Page < lastPack.PageCount)
                     {
                         CombineLastPackWithANewPack();
                         continue;
                     }
+                    */
                     
                     AddingExpand();
                 }
@@ -80,7 +81,10 @@ namespace PatternMatching.Package.logic
             if (links.Count > 0)
             {
                 var link = links.First();
-                ExpandElement(link, -1);
+                var possibleSources = lastPack.GetPossibleIds(link.Source, Pattern);
+                var possibleTargets = lastPack.GetPossibleIds(link.Target, Pattern);
+                var count = expander.CountLink(link, possibleSources, possibleTargets);
+                ExpandElement(link, count);
                 return;
             }
 
@@ -109,6 +113,7 @@ namespace PatternMatching.Package.logic
 
         private void ExpandElement(Element element, int count)
         {
+
             var pageCount = (count - 1) / PageMax + 1;
             CreateNewPack(element, 1, pageCount);
             var expandedElements = ExpandLastElementOfNewPack(newPack.Page);
